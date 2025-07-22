@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>খরচ ও জমা হিসাব - Nalchity Bazar</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --secondary: #3498db;
+      --success: #2ecc71;
+      --danger: #e74c3c;
+      --light: #ecf0f1;
+      --dark: #34495e;
+      --shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+      --radius: 12px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #1a2980, #26d0ce);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: #333;
+    }
+    
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      width: 100%;
+      max-width: 800px;
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      padding: 25px;
+      text-align: center;
+      color: white;
+      position: relative;
+    }
+    
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+    }
+    
+    .logo i {
+      font-size: 40px;
+      color: white;
+    }
+    
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+    
+    .subtitle {
+      opacity: 0.9;
+      font-size: 18px;
+    }
+    
+    .summary-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      padding: 20px;
+      background: rgba(236, 240, 241, 0.5);
+      border-bottom: 1px solid #eee;
+    }
+    
+    .summary-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 15px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+    
+    .summary-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .summary-card i {
+      font-size: 28px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    
+    .summary-value {
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+    
+    .section {
+      padding: 25px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .section-title {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      color: var(--dark);
+      font-size: 20px;
+    }
+    
+    .section-title i {
+      margin-right: 10px;
+      color: var(--secondary);
+      font-size: 24px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+    
+    input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #ddd;
+      border-radius: var(--radius);
+      font-size: 16px;
+      transition: var(--transition);
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+    
+    .btn-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .btn {
+      position: relative;
+      padding: 18px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 18px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      overflow: hidden;
+      transition: var(--transition);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(to right, var(--success), #27ae60);
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(to right, var(--secondary), #2980b9);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(to right, var(--danger), #c0392b);
+    }
+    
+    .btn-longpress {
+      display: block;
+      font-size: 14px;
+      margin-top: 10px;
+      color: #7f8c8d;
+      text-align: center;
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .actions-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    
+    .table-container {
+      overflow-x: auto;
+      padding: 25px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    
+    thead {
+      background: linear-gradient(to right, var(--primary), var(--dark));
+    }
+    
+    th {
+      color: white;
+      padding: 16px;
+      text-align: center;
+      font-weight: 600;
+    }
+    
+    tbody tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    
+    td {
+      padding: 14px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .income {
+      color: var(--success);
+      font-weight: 700;
+    }
+    
+    .expense {
+      color: var(--danger);
+      font-weight: 700;
+    }
+    
+    .footer {
+      text-align: center;
+      padding: 20px;
+      background: var(--light);
+      color: var(--dark);
+      font-weight: 500;
+    }
+    
+    /* Firebase Connection Indicator */
+    #firebaseStatus {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 30px;
+      background: var(--success);
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+    }
+    
+    .connection-badge {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      background: white;
+      border-radius: 50%;
+      margin-left: 5px;
+    }
+    
+    /* Print Styles */
+    @media print {
+      body {
+        background: white !important;
+        padding: 0;
+        margin: 0;
+      }
+      
+      .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+        background: white !important;
+        box-shadow: none !important;
+        border-radius: 0;
+      }
+      
+      /* Hide all elements except the table */
+      .header, .summary-container, .section, #firebaseStatus, .footer, .btn {
+        display: none !important;
+      }
+      
+      .table-container {
+        display: block;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+        border-radius: 0;
+        overflow: visible;
+      }
+      
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      
+      thead th {
+        background: #2c3e50 !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      th, td {
+        border: 1px solid black !important;
+        color: black !important;
+        background: white !important;
+      }
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .summary-container {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .actions-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .btn {
+        padding: 15px;
+        font-size: 16px;
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.6s ease forwards;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Firebase connection indicator -->
+  <div id="firebaseStatus">
+    <i class="fas fa-database"></i>
+    Firebase সংযুক্ত
+    <span class="connection-badge"></span>
+  </div>
+
+  <div class="container">
+    <div class="header fade-in">
+      <div class="logo">
+        <i class="fas fa-file-invoice-dollar"></i>
+      </div>
+      <h1>Nalchity Bazar Outlet</h1>
+      <p class="subtitle">খরচ ও জমার হিসাব</p>
+    </div>
+
+    <div class="summary-container fade-in">
+      <div class="summary-card">
+        <i class="far fa-calendar-alt"></i>
+        <div>বর্তমান মাস</div>
+        <div class="summary-value" id="currentMonth"></div>
+      </div>
+      
+      <div class="summary-card">
+        <i class="fas fa-wallet"></i>
+        <div>মোট জমা</div>
+        <div class="summary-value" id="budget">৳0</div>
+      </div>
+      
+      <div class="summary-card">
+        <i class="fas fa-shopping-cart"></i>
+        <div>মোট খরচ</div>
+        <div class="summary-value" id="total">৳0</div>
+      </div>
+      
+      <div class="summary-card">
+        <i class="fas fa-piggy-bank"></i>
+        <div>অবশিষ্ট</div>
+        <div class="summary-value" id="remaining">৳0</div>
+      </div>
+    </div>
+
+    <div class="section fade-in">
+      <div class="section-title">
+        <i class="fas fa-money-bill-wave"></i>
+        <h3>খরচ যোগ করুন</h3>
+      </div>
+      
+      <div class="form-group">
+        <label for="description">খরচের বিবরণ</label>
+        <input type="text" id="description" placeholder="বিবরণ (যেমন: বাজার, পরিবহন, ইত্যাদি)">
+      </div>
+      
+      <div class="form-group">
+        <label for="amount">টাকার পরিমাণ</label>
+        <input type="number" id="amount" placeholder="টাকার পরিমাণ (৳)">
+      </div>
+      
+      <div class="btn-container">
+        <button id="expenseBtn" class="btn btn-secondary">
+          <i class="fas fa-plus-circle"></i>খরচ যোগ করুন
+        </button>
+        <p class="btn-longpress">(দীর্ঘক্ষণ চেপে রাখুন)</p>
+      </div>
+    </div>
+
+    <div class="section fade-in">
+      <div class="section-title">
+        <i class="fas fa-hand-holding-usd"></i>
+        <h3>জমা যোগ করুন</h3>
+      </div>
+      
+      <div class="form-group">
+        <label for="addDesc">জমার উৎস</label>
+        <input type="text" id="addDesc" placeholder="জমার উৎস (যেমন: এজেন্ট, বিক্রয়, ইত্যাদি)" value="এজেন্ট থেকে গ্রহণ">
+      </div>
+      
+      <div class="form-group">
+        <label for="addAmount">জমার পরিমাণ</label>
+        <input type="number" id="addAmount" placeholder="টাকার পরিমাণ (৳)">
+      </div>
+      
+      <div class="btn-container">
+        <button id="depositBtn" class="btn btn-primary">
+          <i class="fas fa-plus-circle"></i>জমা যোগ করুন
+        </button>
+        <p class="btn-longpress">(দীর্ঘক্ষণ চেপে রাখুন)</p>
+      </div>
+    </div>
+
+    <div class="section fade-in">
+      <div class="section-title">
+        <i class="fas fa-cog"></i>
+        <h3>অন্যান্য অপশন</h3>
+      </div>
+      <div class="actions-container">
+        <button onclick="clearAll()" class="btn btn-danger">
+          <i class="fas fa-trash-alt"></i>ডাটা রিসেট
+        </button>
+        <button onclick="window.print()" class="btn btn-primary">
+          <i class="fas fa-print"></i>প্রিন্ট করুন
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>তারিখ</th>
+            <th>বিবরণ</th>
+            <th>টাকা</th>
+          </tr>
+        </thead>
+        <tbody id="expenseTable"></tbody>
+      </table>
+    </div>
+
+    <div class="footer">
+      <p>© 2025 Nalchity Bazar Outlet | সর্বস্বত্ব সংরক্ষিত</p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDFUKJ5rpl7Z6NJC_3jwsP3Jfv7_3eEkUI",
+    authDomain: "pt-cash-nachon.firebaseapp.com",
+    databaseURL: "https://pt-cash-863e7-default-rtdb.firebaseio.com",
+    projectId: "pt-cash-863e7",
+    storageBucket: "pt-cash-863e7.appspot.com",
+    messagingSenderId: "764863431568",
+    appId: "1:764863431568:web:2929d7fb8005d3301de915"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const firebaseStatus = document.getElementById('firebaseStatus');
+  db.ref('.info/connected').on('value', (snapshot) => {
+    if (snapshot.val() === true) {
+      firebaseStatus.innerHTML = '<i class="fas fa-database"></i> সংযুক্ত';
+      firebaseStatus.style.background = '#2ecc71';
+    } else {
+      firebaseStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> বিচ্ছিন্ন';
+      firebaseStatus.style.background = '#e74c3c';
+    }
+  });
+
+  const today = new Date();
+  const currentMonth = `${today.getFullYear()}-${today.getMonth() + 1}`;
+  document.getElementById("currentMonth").innerText = new Intl.DateTimeFormat('bn-BD', {
+    month: 'long',
+    year: 'numeric'
+  }).format(today);
+
+  let budget = 0;
+  let totalSpent = 0;
+
+  function updateSummary() {
+    document.getElementById('budget').innerText = `৳${budget}`;
+    document.getElementById('total').innerText = `৳${totalSpent}`;
+    document.getElementById('remaining').innerText = `৳${budget - totalSpent}`;
+    const remainingElement = document.getElementById('remaining');
+    if (budget - totalSpent < 0) {
+      remainingElement.style.color = '#e74c3c';
+    } else if (budget - totalSpent < budget * 0.2) {
+      remainingElement.style.color = '#f39c12';
+    } else {
+      remainingElement.style.color = '#2ecc71';
+    }
+  }
+
+  function addRow(date, desc, amount, type) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${new Date(date).toLocaleDateString('bn-BD')}</td>
+      <td>${desc}</td>
+      <td class="${type}">${type === 'income' ? '+' : '-'}৳${Math.abs(amount)}</td>
+    `;
+    document.getElementById("expenseTable").appendChild(row);
+  }
+
+  function loadDataRealtime() {
+    const ref = db.ref(`expenses/${currentMonth}`);
+    ref.on('value', (snapshot) => {
+      document.getElementById("expenseTable").innerHTML = '';
+      budget = 0;
+      totalSpent = 0;
+      snapshot.forEach((child) => {
+        const { date, desc, amount, type } = child.val();
+        if (type === 'income') {
+          budget += amount;
+        } else {
+          totalSpent += Math.abs(amount);
+        }
+        addRow(date, desc, amount, type);
+      });
+      updateSummary();
+    });
+  }
+
+  function addExpense() {
+    const desc = document.getElementById("description").value.trim();
+    const amount = parseFloat(document.getElementById("amount").value);
+    const date = new Date().toISOString();
+    if (!desc || isNaN(amount) || amount <= 0) {
+      alert("বিবরণ ও সঠিক পরিমাণ দিন");
+      return;
+    }
+    db.ref(`expenses/${currentMonth}`).push({
+      date, desc, amount: -amount, type: "expense"
+    });
+    document.getElementById("description").value = '';
+    document.getElementById("amount").value = '';
+  }
+
+  function addToBudget() {
+    const desc = document.getElementById("addDesc").value.trim() || "জমা";
+    const amount = parseFloat(document.getElementById("addAmount").value);
+    const date = new Date().toISOString();
+    if (isNaN(amount) || amount <= 0) {
+      alert("সঠিক টাকার পরিমাণ দিন");
+      return;
+    }
+    db.ref(`expenses/${currentMonth}`).push({
+      date, desc, amount: amount, type: "income"
+    });
+    document.getElementById("addDesc").value = 'এজেন্ট থেকে গ্রহণ';
+    document.getElementById("addAmount").value = '';
+  }
+
+  function clearAll() {
+    if (confirm("আপনি কি নিশ্চিত? সমস্ত ডাটা মুছে যাবে!")) {
+      db.ref(`expenses/${currentMonth}`).remove();
+    }
+  }
+
+  document.getElementById("expenseBtn").addEventListener("click", addExpense);
+  document.getElementById("depositBtn").addEventListener("click", addToBudget);
+
+  loadDataRealtime();
+</script>
+
+</body>
+</html>
